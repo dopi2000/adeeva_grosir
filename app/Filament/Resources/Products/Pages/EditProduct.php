@@ -13,7 +13,9 @@ class EditProduct extends EditRecord
     protected function getHeaderActions(): array
     {
         return [
-            DeleteAction::make(),
+            DeleteAction::make()
+            ->icon('heroicon-s-trash')
+            ->tooltip('Hapus Data'),
         ];
     }
 }

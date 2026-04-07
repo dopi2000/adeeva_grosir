@@ -2,31 +2,39 @@
 
 namespace App\Livewire\Frontend;
 
-use App\Models\Region;
 use Livewire\Component;
 use Illuminate\Support\Number;
 use App\Data\CartDatas\CartData;
+use App\Rules\ValidShippingHash;
 use Illuminate\Support\Collection;
+use App\Data\Checkout\CheckoutData;
+use App\Data\Customer\CustomerData;
+use App\Data\Shipping\ShippingData;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use App\Rules\ValidPaymentMethodHash;
 use App\Contract\CartServiceInterface;
 use Spatie\LaravelData\DataCollection;
 use App\Services\Region\RegionQueryService;
-use App\Data\CustomerAddressData\CustomerAddressData;
-use App\Data\Shipping\ShippingData;
 use App\Services\Shipping\ShippingMethodService;
+use App\Services\Payment\PaymentMethodQueryService;
+use App\Data\CustomerAddressData\CustomerAddressData;
+use App\Services\Checkout\CheckoutService;
 
 class Checkout extends Component
 {
     public array $data = [
         'name' => null,
+        'email' => null,
         'phone' => null,
         'street_name' => null,
         'province' => null,
-        'city' => null,
+        'regency' => null,
         'district' => null,
         'village' => null,
-        'postal_code' => null
+        'postal_code' => null,
+        'shipping_hash' => null,
+        'payment_hash' => null
 
     ];
 
@@ -43,14 +51,23 @@ class Checkout extends Component
         'shipping_method' => null
     ];
 
+    public array $payment_method_selector = [
+        'payment_method_selected' => null
+    ];
+
     public function mount() {
 
         if(!Gate::inspect('is_stock_available')->allowed())  {
             return redirect()->route('product.carts');
         }
 
-        if(!$this->user->address()->first()) {
-            return redirect()->route('product.carts')->with('error', 'Alamat pengiriman tidak tersedia, mohon lengkapi alamat anda terlebih ');
+        if(empty($this->user)) {
+            return redirect()->route('product.carts')->with('error', 'Anda belum login. Silahkan masuk ke akun anda terlebih dahulu atau buat akun baru jika belum memiliki akun');
+        }
+
+
+        if(empty($this->user->address)) {
+            return redirect()->route('product.carts')->with('error', 'Alamat pengiriman tidak tersedia, mohon lengkapi alamat anda terlebih dahulu');
         }
 
         $this->calculateTotal();
@@ -61,11 +78,21 @@ class Checkout extends Component
     protected function rules() {
         return [
             'data.name' => ['required', 'max:255', 'exists:users,name'],
-            'date.phone' => ['required', 'min:6', 'max:12', 'exists:users:phone'],
-            'data.street_name' => ['required', 'min:5', 'max:255', 'exists:user_addresses,street_name'],
-            'data.province' => ['required', 'min:10', 'max:255', 'exists:regions,name'],
-            'data.city' => ['required', 'min:10', 'max:255', 'exists:regions,name'],
-            'data.district' => ['required', 'min:10']
+            'data.email' => ['required', 'max:255', 'exists:users,email'],
+            'data.phone' => ['required', 'min:5', 'max:12', 'exists:users,phone'],
+            'data.street_name' => ['required', 'min:3', 'max:255', 'exists:user_addresses,street_name'],
+            'data.province' => ['required', 'min:3', 'max:255', 'exists:regions,name'],
+            'data.regency' => ['required', 'min:3', 'max:255', 'exists:regions,name'],
+            'data.district' => ['required', 'min:3'],
+            'data.postal_code' => ['required', 'exists:regions,postal_code'],
+            'data.shipping_hash' => ['required', new ValidShippingHash()],
+            'data.payment_hash' => ['required', new ValidPaymentMethodHash()]
+        ];
+    }
+    protected function messages() {
+        return [
+            'data.shipping_hash.required' => 'Metode Pengiriman Belum Dipilih',
+            'data.payment_hash.required' => 'Metode Pembayaran Belum Dipilih'
         ];
     }
 
@@ -74,7 +101,7 @@ class Checkout extends Component
         data_set($this->summaries, 'sub_total', $this->cart->total_price);
         data_set($this->summaries, 'sub_total_formatted', $this->cart->total_formatted_price);
         
-        $shipping_cost = 0;
+        $shipping_cost = $this->shippingMethod?->cost ?? 0;
         data_set($this->summaries, 'shipping_total', $shipping_cost);
         data_set($this->summaries, 'shipping_total_formatted', Number::currency($shipping_cost, locale:'id'));
         
@@ -85,12 +112,13 @@ class Checkout extends Component
     }
 
     public function customerDetail() {
-        $address = CustomerAddressData::formModel($this->user->address()->first());
+        $address = CustomerAddressData::formModel($this->user->address);
         data_set($this->data, 'name', $this->user->name);
+        data_set($this->data, 'email', $this->user->email);
         data_set($this->data, 'phone', $this->user->phone);
         data_set($this->data, 'street_name', $address->street_name);
         data_set($this->data, 'province',  $address->province);
-        data_set($this->data, 'city',  $address->city);
+        data_set($this->data, 'regency',  $address->city);
         data_set($this->data, 'district', $address->district);
         data_set($this->data, 'village', $address->village);
         data_set($this->data, 'postal_code', $address->postal_code);
@@ -111,16 +139,82 @@ class Checkout extends Component
         ShippingMethodService $shipping_service
     ) : DataCollection|Collection {
 
-        return $shipping_service->getShippingMethods(
-            $region->searchRegionByCode('82.71.06.1009'),
-            CustomerAddressData::formModel(Auth::user()->address()->first()),
+        $data = $shipping_service->getShippingMethods(
+            $region->searchRegionByCode(
+                config('origin-code.origin_code')
+            ),
+            CustomerAddressData::formModel($this->user->address),
             $this->cart
-        )->toCollection()->groupBy('service');
+        )->toCollection()->groupBy('courier');
+        
+        return $data;
     }
 
-    public function placeAnOrder() {
-        dd($this->shipping_selector, $this->data, $this->shipping_methods);
+    public function getShippingMethodProperty(
+        ShippingMethodService $shipping_service
+    ) : ?ShippingData {
+
+        if(
+            empty(data_get($this->data, 'shipping_hash')) ||
+            empty($this->user->address)
+        ) {
+            return null;
+        }
+
+        $data = $shipping_service->getShippingMethod(
+            data_get($this->data, 'shipping_hash')
+        );
+
+        if($data == null) {
+            $this->addError('shipping_hash', 'Waktu sesi telah hangus');
+            redirect()->route('product.carts');
+        }
+
+        return $data;
     }
+
+    public function updatedShippingSelectorShippingMethod($value) {
+        data_set($this->data, 'shipping_hash', $value);
+        $this->calculateTotal();
+    }
+    
+    public function getPaymentMethodsProperty(
+        PaymentMethodQueryService $query_service
+    ) : DataCollection {
+
+        return $query_service->getPaymentMethods();
+    }
+
+    public function updatedPaymentMethodSelectorPaymentMethodSelected($value) {
+        data_set($this->data, 'payment_hash', $value);
+    }
+
+    public function placeAnOrder(
+        CartServiceInterface $cart
+    ) {
+        $validated = $this->validate();
+        $shipping_method = app(ShippingMethodService::class)->getShippingMethod(
+            data_get($validated, 'data.shipping_hash')
+        );
+        $payment_method = app(PaymentMethodQueryService::class)->getPaymentMethodByHash(
+            data_get($validated, 'data.payment_hash')
+        );
+        $checkout = CheckoutData::from([
+            'customer' => CustomerData::from(data_get($validated, 'data')),
+            'origin' => $shipping_method->origin,
+            'destination' => $shipping_method->destination,
+            'cart' => $this->cart,
+            'shipping' => $shipping_method,
+            'payment' => $payment_method
+        ]);
+
+        $service = app(CheckoutService::class);
+        $sales_order = $service->makeAnOrder($checkout);
+        $cart->clear();
+
+        return redirect()->route('order.confirmed', $sales_order->trx_id);
+    }
+
 
 
     public function render()

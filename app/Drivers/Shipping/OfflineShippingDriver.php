@@ -26,16 +26,33 @@ class OfflineShippingDriver implements ShippingDriverInterface {
         return ShippingServiceData::collect([
             [
                 'driver' => $this->driver,
-                'code' => 'offline-0',
+                'code' => 'offline_cod',
                 'courier' => 'Kurir Toko',
-                'service' => 'Instant'
+                'service' => 'Cash On Delivery',
+                'description' => 'Pengiriman dan pembayaran di tempat. Untuk alamat diluar kota Ternate belum tersedia layanan COD'
             ],
             [
                 'driver' => $this->driver,
-                'code' => 'offline-1',
+                'code' => 'offline_pick_up',
                 'courier' => 'Kurir Sendiri',
-                'service'=> 'SameDay'
+                'service'=> 'Penjemputan di Toko',
+                'description' => 'Pesanan bisa langsung jemput ditoko. Untuk lokasi penjemputan di dalam terminal gamalama, samping ruang tunggu.'
             ],
+            [
+                'driver' => $this->driver,
+                'code' => 'offline_antar_ke_pelabuhan',
+                'courier' => 'Kurir Toko',
+                'service' => 'Pengantaran Ke Pelabuhan',
+                'description' => 'Pengantaran ke pelabuhan kapal dan speed boat. Informasi pengiriman akan dikontak melalui WA untuk konfirmasi nomor penitipan barang.'
+            ],
+            [
+                'driver' => $this->driver,
+                'code' => 'offline_jastip_ekspedisi',
+                'courier' => 'Kurir Toko',
+                'service' => 'Pengantaran Ke Jasa Titip atau Ekspedisi Lokal',
+                'description' => 'Pengantaran ke jasa titip atau ekspedisi  pengiriman barang atau bisa informasikan ke toko untuk jasa ekspedisi barang yang anda gunakan. '
+            ]
+
         ], DataCollection::class);
     }
 
@@ -49,31 +66,58 @@ class OfflineShippingDriver implements ShippingDriverInterface {
         $data = null;
         
         switch ($shipping_service->code) {
-            case 'offline-0':
+            case 'offline_cod':
                 $data = ShippingData::from([
                     'driver' => $this->driver,
                     'courier' => $shipping_service->courier,
                     'service' => $shipping_service->service,
-                    'estimated_delivery' => '1-2 Hari',
-                    'cost' => 50000,
-                    'weight' => $cart->total_weigt,
+                    'estimated_delivery' => '1-2 Jam',
+                    'cost' => 20000,
+                    'weight' => $cart->total_weight,
                     'origin' => $origin,
-                    'destination' => $destination
+                    'destination' => $destination,
+                    'description' => $shipping_service->description
                 ]);
                 break;
-            case 'offline-1':
+            case 'offline_pick_up':
                 $data = ShippingData::from([
                     'driver' => $this->driver,
                     'courier' => $shipping_service->courier,
                     'service' => $shipping_service->service,
-                    'estimated_delivery' => '1-2 Hari',
+                    'estimated_delivery' => '-',
                     'cost' => 0,
-                    'weight' => $cart->total_weigt,
+                    'weight' => $cart->total_weight,
                     'origin' => $origin,
-                    'destination' => $destination
+                    'destination' => $destination,
+                    'description' => $shipping_service->description
                 ]);
                 break;
-            
+            case 'offline_antar_ke_pelabuhan':
+                $data = ShippingData::from([
+                    'driver' => $this->driver,
+                    'courier' => $shipping_service->courier,
+                    'service' => $shipping_service->service,
+                    'estimated_delivery' => '1-2 Jam',
+                    'cost' => 30000,
+                    'weight' => $cart->total_weight,
+                    'origin' => $origin,
+                    'destination' => $destination,
+                    'description' => $shipping_service->description
+                ]);
+                break;
+            case 'offline_jastip_ekspedisi':
+                $data = ShippingData::from([
+                    'driver' => $this->driver,
+                    'courier' => $shipping_service->courier,
+                    'service' => $shipping_service->service,
+                    'estimated_delivery' => '1-2 Jam',
+                    'cost' => 25000,
+                    'weight' => $cart->total_weight,
+                    'origin' => $origin,
+                    'destination' => $destination,
+                    'description' => $shipping_service->description
+                ]);
+                break;
             default:
                 $data = null;
                 break;

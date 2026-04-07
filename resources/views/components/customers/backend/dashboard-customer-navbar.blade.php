@@ -1,4 +1,4 @@
-<header class="antialiased">
+{{-- <header class="antialiased">
   <nav class="bg-white border-gray-200 px-4 lg:px-6 py-2.5 dark:bg-gray-800">
       <div class="flex flex-wrap justify-between items-center">
             <div class="flex justify-start items-center ms-4">
@@ -48,4 +48,49 @@
             </div>
       </div>
   </nav>
-</header>
+</header> --}}
+
+<!-- ==================== NAVBAR START ==================== -->
+<nav class="bg-white border-b border-gray-200 fixed w-full z-20 top-0 left-0">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        <div class="flex items-center space-x-3">
+            <!-- Mobile menu button -->
+            <button id="toggleSidebarMobile" type="button" class="inline-flex items-center p-2 w-10 h-10 justify-center text-sm text-gray-500 rounded-lg md:hidden hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200">
+                <span class="sr-only">Buka menu utama</span>
+                <svg class="w-5 h-5" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 17 14">
+                    <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M1 1h15M1 7h15M1 13h15"/>
+                </svg>
+            </button>
+            <!-- Logo & Brand -->
+            <a href="{{ route('home') }}" class="flex items-center space-x-3 rtl:space-x-reverse">
+                <i class="fas fa-cube text-2xl text-blue-600"></i>
+                <span class="self-center text-2xl font-semibold whitespace-nowrap">AdeevaGrosir</span>
+            </a>
+        </div>
+
+        <!-- Profile Dropdown -->
+        <div class="flex items-center md:order-2 space-x-3 md:space-x-0">
+            <button type="button" class="flex text-sm bg-gray-800 rounded-full md:me-0 focus:ring-4 focus:ring-gray-300" id="user-menu-button" aria-expanded="false" data-dropdown-toggle="user-dropdown" data-dropdown-placement="bottom">
+                <span class="sr-only">Buka menu user</span>
+                <img class="w-8 h-8 rounded-full" src="{{ Auth::user()->avatar ? asset("storage/" . Auth::user()->avatar) : asset('avatar/avatar-default.jpg') }}" alt="foto user">
+            </button>
+            <!-- Dropdown menu -->
+            <div class="z-50 hidden my-4 text-base list-none bg-white divide-y divide-gray-100 rounded-lg shadow" id="user-dropdown">
+                <div class="px-4 py-3">
+                    <span class="block text-sm text-gray-900">{{ Auth::user()->name }}</span>
+                    <span class="block text-sm text-gray-500 truncate">{{ Auth::user()->email }}</span>
+                </div>
+                <ul class="py-2" aria-labelledby="user-menu-button">
+                    <li>
+                        <a href="{{ route('home') }}" class="block px-4 py-2 text-sm text-gray-500 font-semibold hover:bg-gray-100">Kembali</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('logout.customer') }}" class="block px-4 py-2 text-sm text-red-500 font-semibold hover:bg-gray-100">Keluar</a>
+                    </li>
+                </ul>
+            </div>
+            
+        </div>
+    </div>
+</nav>
+<!-- ==================== NAVBAR END ==================== -->

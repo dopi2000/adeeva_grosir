@@ -10,6 +10,9 @@
 @source '../**/*.js';
 @source "../../node_modules/flowbite";
 
+@source '../../../../vendor/jeffgreco13/filament-breezy/resources/**/*';
+
+
 @custom-variant dark (&:where(.dark, .dark *));
 
 @layer utilities {

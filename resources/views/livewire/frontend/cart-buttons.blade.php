@@ -30,9 +30,14 @@
                 <span class="sr-only">Loading...</span>
             </div>
         </button>
-        <button class="flex-1 action-btn bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center justify-center transition">
+        <button wire:click="buyNowButton" class="flex-1 action-btn bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium flex items-center justify-center transition">
             {{-- <i class="fas fa-bolt text-xs mr-1"></i>  --}}
-            <span class="text-xs">Beli</span>
+            <span wire:loading.remove wire:target="buyNowButton">
+                <span class="text-xs">Beli</span>
+            </span>
+            <div wire:loading wire:target="buyNowButton" class="animate-spin inline-block size-5 border-3 border-current border-t-transparent text-white rounded-full " role="status" aria-label="loading">
+                <span class="sr-only">Loading...</span>
+            </div>
         </button>
     </div>
 </div>

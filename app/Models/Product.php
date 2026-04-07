@@ -3,9 +3,11 @@
 namespace App\Models;
 
 use App\Enums\PriceType;
+use App\States\SalesOrder\Completed;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Spatie\Tags\HasTags;
@@ -31,6 +33,19 @@ class Product extends Model implements HasMedia
     {
         $this->addMediaCollection('cover')->useDisk('public');
         $this->addMediaCollection('gallery')->useDisk('public');
+    }
+
+    public function salesOrderItems() : HasMany {
+        return $this->hasMany(SalesOrderItem::class, 'product_id');
+    }
+
+    public function scopeSoldItem($query) {
+        return $query->withSum(
+            ['salesOrderItems as total_terjual' => function($q) 
+                {
+                    $q->whereHas('salesOrder', fn($sq) => $sq->where('status', Completed::class));
+                }
+            ], 'quantity');
     }
 
 }

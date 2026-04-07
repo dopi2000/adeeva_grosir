@@ -19,8 +19,5 @@
            <x-customers.frontend.product-recomended-section />
      </section>
      {{-- prduct card list  --}}
-     @push('scripts')
-         <script src="{{ asset('js/frontend/home.js')}}"></script>
-     @endpush
 </x-layouts.layout-customer>
 

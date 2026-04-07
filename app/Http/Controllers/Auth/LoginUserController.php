@@ -11,6 +11,7 @@ class LoginUserController extends Controller
 {
     public function index() {
         session()->forget('data_user');
+        
         $title = 'Masuk ke akun kamu | Adeeva Grosir';
         return view('auth.login-user', ['title' => $title]);
     }

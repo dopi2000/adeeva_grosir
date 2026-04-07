@@ -2,13 +2,18 @@
 
 namespace App\Filament\Resources\Products\Schemas;
 
+use App\Enums\PriceType;
+use Illuminate\Support\Str;
 use Filament\Schemas\Schema;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Components\MarkdownEditor;
-use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
-use Filament\Forms\Components\SpatieTagsInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Fieldset;
+use Filament\Forms\Components\MarkdownEditor;
+use Filament\Forms\Components\SpatieTagsInput;
+use Filament\Schemas\Components\Utilities\Set;
+use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
 
 class ProductForm
 {
@@ -16,77 +21,95 @@ class ProductForm
     {
         return $schema
             ->components([
-                Section::make()->schema([
-                    SpatieMediaLibraryFileUpload::make('cover')
-                    ->collection('cover'),
+                 Section::make()->schema([
+                    Section::make('Masukan Detail Produk')
+                    ->schema([
+                        TextInput::make('name')
+                        ->label('Merek')
+                        ->live(onBlur:true)
+                        ->afterStateUpdated(fn(Set $set, $state) => $set('slug', Str::slug($state)))
+                        ->placeholder('Masukan Merek Produk')
+                        ->required()
+                        ->minLength(5)
+                        ->maxLength(255),
 
-                    SpatieMediaLibraryFileUpload::make('gallery')
-                    ->collection('gallery')
-                    ->multiple(),
+                        TextInput::make('sku')
+                        ->label('SKU')
+                        ->placeholder('Masukan SKU Produk')
+                        ->required()
+                        ->unique(ignoreRecord: true)
+                        ->minLength(5)
+                        ->maxLength(255),
 
-                    TextInput::make('name')
-                    ->label('Merek')
-                    ->placeholder('Masukan Merek Produk')
-                    ->required()
-                    ->minLength(5)
-                    ->maxLength(255),
+                        TextInput::make('slug')
+                        ->label('Slug')
+                        ->placeholder('Masukan Slug Produk')
+                        ->required()
+                        ->unique(ignoreRecord: true)
+                        ->minLength(5)
+                        ->maxLength(255),
 
-                    TextInput::make('sku')
-                    ->label('SKU')
-                    ->placeholder('Masukan SKU Produk')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->minLength(5)
-                    ->maxLength(255),
+                        SpatieTagsInput::make('tags')
+                        ->type('collection')
+                        ->label('Kategori'),
 
-                    TextInput::make('slug')
-                    ->label('Slug')
-                    ->placeholder('Masukan Slug Produk')
-                    ->required()
-                    ->unique(ignoreRecord: true)
-                    ->minLength(5)
-                    ->maxLength(255),
+                        Select::make('type')
+                        ->required()
+                        ->label('Tipe Harga')
+                        ->options([
+                            'Lusin' => 'Lusin',
+                            'Kodi' => 'Kodi',
+                            'Pcs' => 'Pcs'
+                        ])
+                        ->native(false),
 
-                    SpatieTagsInput::make('tags')
-                    ->type('collection')
-                    ->label('Kategori'),
+                        TextInput::make('stock')
+                        ->required()
+                        ->label('Stok')
+                        ->placeholder('Masukan Stock Produk')
+                        ->integer()
+                        ->minValue(0),
 
-                    Select::make('type')
-                    ->required()
-                    ->label('Tipe')
-                    ->options([
-                        'Lusin' => 'Lusin',
-                        'Kodi' => 'Kodi',
-                        'Pcs' => 'Pcs'
-                    ]),
+                        TextInput::make('cost_price')
+                        ->label('Harga Dasar')
+                        ->required()
+                        ->placeholder('Masukan Harga Dasar Produk')
+                        ->numeric()
+                        ->prefix('Rp.')
+                        ->minValue(0),
 
-                    TextInput::make('stock')
-                    ->required()
-                    ->label('Stok')
-                    ->placeholder('Masukan Stock Produk')
-                    ->integer(),
+                        TextInput::make('price')
+                        ->required()
+                        ->label('Harga Jual')
+                        ->placeholder('Masukan Harga Produk')
+                        ->numeric()
+                        ->prefix('Rp.')
+                        ->minValue(0),
 
-                    TextInput::make('price')
-                    ->required()
-                    ->label('Harga')
-                    ->placeholder('Masukan Harga Produk')
-                    ->numeric()
-                    ->prefix('Rp.'),
+                        TextInput::make('weight')
+                        ->label('Berat')
+                        ->numeric()
+                        ->placeholder('Masukan Berat Produk')
+                        ->suffix('Gram')
+                        ->required()
+                        ->minValue(0),
+                        
+                        MarkdownEditor::make('description')
+                        ->label('Deskripsi')
+                        ->nullable(),
 
-                    TextInput::make('weight')
-                    ->label('Berat')
-                    ->numeric()
-                    ->default(0)
-                    ->placeholder('Masukan Berat Produk')
-                    ->suffix('Kg')
-                    ->required(),
-                    
-                    MarkdownEditor::make('description')
-                    ->label('Deskripsi')
-                    ->nullable()
-                    ])
-                    ->columns(1)
-                    ->maxWidth('4xl')
+                        Fieldset::make('Masukan Gambar Produk')
+                        ->schema([
+                            SpatieMediaLibraryFileUpload::make('cover')
+                            ->collection('cover'),
+
+                            SpatieMediaLibraryFileUpload::make('gallery')
+                            ->collection('gallery')
+                            ->multiple(),
+                                ]) // filed
+                        ]), // section dua
+                            
+                    ]) // section satu
                     ->columnSpanFull()
             ]);
     }

@@ -7,6 +7,7 @@ use Livewire\Component;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\RateLimiter;
 
 class LoginUser extends Component
 {
@@ -40,17 +41,35 @@ class LoginUser extends Component
     
     public function loginUser() {
         $this->validate();
+        
         $credentials = $this->getCredentials();
+
+        $throttleKey = Str::lower(Arr::first($credentials)) . '|' . request()->ip();
+
+        if(RateLimiter::tooManyAttempts($throttleKey, 5)) {
+
+            $seconds = RateLimiter::availableIn($throttleKey);
+
+            return back()->with('error', "Terlalu banyak percobaan login. Silakan coba lagi dalam $seconds detik.");
+        }
+
 
         $user = User::where(array_key_first($credentials), Arr::first($credentials))->first();
 
         if($user === null || !Auth::attempt($credentials)) {
+
+            RateLimiter::hit($throttleKey, 60);
+
             return back()->with('error', 'Nama pengguna atau email dan kata sandi salah, silahkan periksa kembali');
         }
         if(!$user->hasVerifiedEmail()) {
+
             $user->sendEmailVerificationNotification();
+
             $verificationToken = Str::random(40);
+
             session()->put('verification_token', $verificationToken);
+            
             return redirect()->route('verification.notice', [
                 'username' => $user->username,
                 'token' => $verificationToken
@@ -58,6 +77,7 @@ class LoginUser extends Component
         }
         
         if(Auth::attempt($credentials, $this->remember_me)) {
+            RateLimiter::clear($throttleKey);
             return redirect()->intended('/');
         }
     }

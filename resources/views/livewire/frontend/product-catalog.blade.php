@@ -78,6 +78,7 @@
                                     <option value="latest">Produk Terbaru</option>
                                     <option value="price_asc">Produk Termurah</option>
                                     <option value="price_desc">Produk Termahal</option>
+                                    <option value="best_seller">Produk Terlaris</option>
                                 </select>
                                 @error('sort_by')
                                 <p class="mt-2 text-xs text-red-600 dark:text-red-500"><span class="font-medium">{{ $message }}</p>

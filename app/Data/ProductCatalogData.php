@@ -16,6 +16,7 @@ class ProductCatalogData extends Data
     public string $price_formatted;
 
     public function __construct(
+        public int $product_id,
         public string $name,
         public string $category,
         public string $sku,
@@ -26,7 +27,8 @@ class ProductCatalogData extends Data
         public float $price,
         public int $weight,
         public string $cover_url,
-        public Optional|array $gallery = new Optional()
+        public Optional|array $gallery = new Optional(),
+        public int|Optional|null $total_terjual
 
     ) {
         $this->price_formatted = Number::currency($price, locale:'id');
@@ -34,8 +36,9 @@ class ProductCatalogData extends Data
 
     public static function fromModel(Product $product, bool $with_gallery = false) :self {
         return new self(
+            $product->id,
             $product->name,
-            $product->tags()->where('type', 'collection')->pluck('name')->implode(', '),
+            $product->tags->where('type', 'collection')->pluck('name')->implode(', '),
             $product->sku,
             $product->slug,
             $product->type,
@@ -44,7 +47,8 @@ class ProductCatalogData extends Data
             FloatVal($product->price),
             $product->weight,
             $product->getFirstMediaUrl('cover'),
-            gallery: $with_gallery ? $product->getMedia('gallery')->map(fn($record) => $record->getUrl())->toArray() : new Optional()
+            gallery: $with_gallery ? $product->getMedia('gallery')->map(fn($record) => $record->getUrl())->toArray() : new Optional(),
+            total_terjual: (int) ($product->total_terjual ?? 0)
         );
     }
 }

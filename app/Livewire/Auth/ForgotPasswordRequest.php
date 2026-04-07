@@ -11,14 +11,15 @@ class ForgotPasswordRequest extends Component
 
     public function rules() {
         return [
-            'email' => ['required', 'email:dns']
+            'email' => ['required', 'email:dns', 'exists:users,email']
         ];
     }
 
     public function messages() {
         return [
             'email.required' => 'Email tidak boleh kosong',
-            'email.email' => 'Email tidak valid'
+            'email.email' => 'Email tidak valid',
+            'email.exists' => 'Email belum terdaftar'
         ];
     }
 
@@ -28,8 +29,9 @@ class ForgotPasswordRequest extends Component
         $status = Password::sendResetLink([
             'email' => $this->email
         ]);
+
         
-        return $status === Password::ResetLinkSent ? back()->with(['status' => __($status)]) : back()->with('error', __($status));
+        return $status === Password::ResetLinkSent ? back()->with('status', 'Tautan ganti kata sandi sudah dikirim email Anda, silahkan periksa email anda.') : back()->with('error', 'Tautan gagal terkirim email anda, coba periksa email anda yang terdaftar.');
     }
 
     public function render()

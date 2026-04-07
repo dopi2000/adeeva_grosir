@@ -103,6 +103,22 @@ class ProductButtonGroup extends Component
         
        return redirect()->route('product.details', $this->slug)->with('status', "{$this->name} berhasil dimasukan keranjang belanja");
     }
+    public function buyNowButton(CartServiceInterface $cart) {
+        $this->validate();
+
+        $cart->addOrUpdate(new CartItemData(
+            sku: $this->sku,
+            quantity: $this->quantity,
+            price: $this->price,
+            weight: $this->weight
+        ));
+
+        $this->quantity = $this->getQuantityDefaultByType();
+
+        $this->dispatch('cart-count-updated');
+        
+       return redirect()->route('product.carts')->with('status', "{$this->name} berhasil dimasukan keranjang belanja");
+    }
 
     public function render()
     {

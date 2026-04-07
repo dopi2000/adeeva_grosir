@@ -63,7 +63,7 @@ class ResetPassword extends Component
 
         $this->resetValidation();
 
-        return $status === Password::PasswordReset ? redirect()->route('login')->with('status', __($status)) : back()->with('error', __($status));
+        return $status === Password::PasswordReset ? redirect()->route('login')->with('status', 'Silahkan masuk dengan kata sandi baru Anda') : back()->with('error', 'Gagal Mengganti kata sandi baru.');
     }
 
     public function render()

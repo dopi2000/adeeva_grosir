@@ -1,0 +1,18 @@
+<div class="flex items-center gap-2 border-b border-gray-200">
+    <div class="relative overflow-hidden rounded-md h-15 w-15">
+        <img class="object-coversize-full"
+            src="{{ $item->cover_url }}"
+            alt="{{ $item->slug }}">
+    </div>
+    <div class="flex items-center">
+        <div class="py-2">
+            <h3 class="text-gray-800 text-md dark:text-white">
+                {{ $item->name }}
+            </h3>
+            <h2 class="text-sm text-gray-500">{{ $item->short_desc }}</h2>
+            <p class="mt-1 text-sm text-black text-md dark:text-black">
+                {{ $item->price_formatted }} x {{ $item->quantity }} = {{ $item->total_formatted }}
+            </p>
+        </div>
+    </div>
+</div>

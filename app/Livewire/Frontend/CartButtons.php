@@ -4,10 +4,12 @@ declare(strict_types=1);
 namespace App\Livewire\Frontend;
 
 use Livewire\Component;
+use Illuminate\Http\Request;
 use App\Data\ProductCatalogData;
 use App\Data\CartDatas\CartItemData;
+use Illuminate\Support\Facades\Auth;
 use App\Contract\CartServiceInterface;
-use Illuminate\Http\Request;
+use RealRashid\SweetAlert\Facades\Alert;
 
 class CartButtons extends Component
 {
@@ -88,7 +90,7 @@ class CartButtons extends Component
     }
 
 
-    public function addToCart(CartServiceInterface $cart, Request $request) {
+    public function addToCart(CartServiceInterface $cart) { 
         $this->validate();
         $cart->addOrUpdate( new CartItemData(
             sku: $this->sku,
@@ -100,9 +102,30 @@ class CartButtons extends Component
         $this->quantity = $this->getQuantityDefaultByType();
 
         $this->dispatch('cart-count-updated');
+        
+        toast("{$this->name} berhasil ditambahkan keranjang belanja.",'success','top-right')->showCloseButton()->autoClose(10000);
 
-        return redirect(request()->header('Referer'))->with('status', "Produk {$this->name} berhasil masuk keranjang belanja.");
+        return redirect(request()->header('Referer'));
+        // ->with('status', "Produk {$this->name} berhasil masuk keranjang belanja.");
     }
+
+    public function buyNowButton(CartServiceInterface $cart) {
+        $this->validate();
+        $cart->addOrUpdate( new CartItemData(
+            sku: $this->sku,
+            quantity: $this->quantity,
+            price: $this->price,
+            weight: $this->weight
+        ));
+
+        $this->quantity = $this->getQuantityDefaultByType();
+
+        $this->dispatch('cart-count-updated');
+        
+
+        return redirect()->route('product.carts')->with('status', "Produk {$this->name} berhasil masuk keranjang belanja.");
+    }
+    
     public function render()
     {
         return view('livewire.frontend.cart-buttons');

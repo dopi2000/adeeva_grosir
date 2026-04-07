@@ -16,7 +16,7 @@ class CartData extends Data
     public float $total_price;
 
     #[Computed]
-    public int $total_weigt;
+    public int $total_weight;
 
     #[Computed]
     public int $total_quantity;
@@ -30,7 +30,7 @@ class CartData extends Data
     ) {
         $items = $items->toCollection();
         $this->total_price = $items->sum(fn(CartItemData $item) => $item->price * $item->quantity);
-        $this->total_weigt = $items->sum(fn(CartItemData $item) => $item->weight * $item->quantity ?? 0);
+        $this->total_weight = $items->sum(fn(CartItemData $item) => $item->weight * $item->quantity ?? 0);
         $this->total_quantity = $items->sum(fn(CartItemData $item) => $item->quantity);
         $this->total_formatted_price = Number::currency($this->total_price, locale: 'id');
     }

@@ -21,9 +21,10 @@ class CustomerAddress extends Component
     public $villages = []; 
 
     public function mount() {
+
         $this->provinces = $this->regions->provinces()->pluck('name', 'code')->toArray();
-        
-        $address = Auth::user()->address()->first();
+
+        $address = $this->user->address;
         
         if($address) {
             $this->street_name = $address->street_name;
@@ -88,6 +89,10 @@ class CustomerAddress extends Component
         return $regions;
     }
 
+    public function getUserProperty() {
+        return Auth::user();
+    }
+
     public function loadData() {
         if($this->province) {
             $this->regencies = $this->regions->regencies()->where('parent_code', $this->province)->pluck('name', 'code')->toArray();
@@ -142,9 +147,9 @@ class CustomerAddress extends Component
     public function updateAddress() {
         $this->validate();
 
-        $user = Auth::user();
-        $user->address()->updateOrCreate(
-            ['user_id' => $user->id],
+        // $user = Auth::user();
+        $this->user->address()->updateOrCreate(
+            ['user_id' => $this->user->id],
             [
                 'street_name' => $this->street_name,
                 'province' => $this->regions->provinces()->where('code', $this->province)->first()->name,

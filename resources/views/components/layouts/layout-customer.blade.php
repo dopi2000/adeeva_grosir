@@ -7,13 +7,17 @@
         <title>{{ $title ?? 'Adeeva Grosir' }}</title>
         {{-- font awesome --}}
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-        @vite('resources/css/app.css')
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
         @stack('styles')
     </head>
-    <body>
+    <body class="bg-gray-50 font-sans">
         <x-customers.frontend.navbar/>
         {{ $slot }}
         <x-customers.frontend.footer />
+        <x-customers.frontend.toast />
+
+        @include('sweetalert::alert')
+        
         <script src="https://cdn.jsdelivr.net/npm/flowbite@3.1.2/dist/flowbite.min.js"></script>
          @stack('scripts')
     </body>

@@ -144,7 +144,7 @@ class CartList extends Component
     } 
 
     public function checkout() {
-        return redirect()->route('checkout');
+        redirect()->route('checkout');
     }
 
     public function render()

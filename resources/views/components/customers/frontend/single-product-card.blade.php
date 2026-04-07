@@ -1,9 +1,11 @@
 
 <div class="product-card relative bg-white rounded-xl shadow-md overflow-hidden m-auto">
         <!-- Product Badge -->
-        {{-- <div class="absolute top-3 left-3">
-            <span class="badge bg-red-500 text-white font-semibold rounded">SALE</span>
-        </div> --}}
+        @if ($product->total_terjual > 15)
+        <div class="absolute top-3 left-3">
+            <span class="badge bg-red-500 text-white font-semibold rounded">Produk Terlaris</span>
+        </div>
+        @endif
         
         <!-- Wishlist Button -->
         <div class="absolute top-3 right-3">
@@ -52,10 +54,11 @@
             <div class="mt-3">
                 <div class="flex justify-between text-xs text-gray-600">
                     <span>Tipe: <span class="font-semibold">{{ $product->type }}</span></span>
+                    <span>Berat: <span class="font-semibold">{{ $product->weight }} gram</span></span>
                 </div>
                 <div class="flex justify-between text-xs text-gray-600">
                     <span>Stok: <span class="font-semibold">{{ $product->stock }}</span></span>
-                    <span>Terjual: <span class="font-semibold">158</span></span>
+                    <span>Terjual: <span class="font-semibold">{{ $product->total_terjual }}</span></span>
                 </div>
                 <div class="mt-1 w-full bg-gray-200 rounded-full">
                     {{-- <div class="bg-green-600 h-1.5 rounded-full" style="width: 75%"></div> --}}

@@ -3,6 +3,7 @@ declare(strict_types=1);
 namespace App\Data\Shipping;
 
 use Spatie\LaravelData\Data;
+use Spatie\LaravelData\Optional;
 
 class ShippingServiceData extends Data
 {
@@ -10,7 +11,8 @@ class ShippingServiceData extends Data
         public string $driver,
         public string $code,
         public string $courier,
-        public string $service
+        public string $service,
+        public string $description
     ) {
         
     }

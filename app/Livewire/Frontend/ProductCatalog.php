@@ -45,7 +45,7 @@ class ProductCatalog extends Component
             'select_category' => 'array',
             'select_category.*' => 'integer|exists:tags,id',
             'search' => 'nullable|string|max:50',
-            'sort_by' => 'in:newest,latest,price_asc,price_desc'
+            'sort_by' => 'in:newest,latest,price_asc,price_desc,best_seller'
         ];
     }
 
@@ -83,7 +83,7 @@ class ProductCatalog extends Component
         }
 
         $category_result = Tag::query()->withType('collection')->withCount('products')->get();
-        $query = Product::query();
+        $query = Product::query()->soldItem()->with(['media','tags']);
 
         if($this->search) {
             $query->where('name', 'LIKE', "%$this->search%");
@@ -103,6 +103,9 @@ class ProductCatalog extends Component
                 break;
             case 'price_desc':
                 $query->orderBy('price', 'desc');
+                break;
+            case 'best_seller':
+                $query->orderByDesc('total_terjual');
                 break;
             default:
                 $query->oldest();
