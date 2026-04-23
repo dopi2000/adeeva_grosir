@@ -9,9 +9,10 @@ use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 
+use function Livewire\str;
+
 class CustomerProfile extends Component
 {
-    public $user;
     public $name;
     public $username;
     public $email;
@@ -19,7 +20,7 @@ class CustomerProfile extends Component
     public $avatar;
 
     public function mount() {
-        $this->user = Auth::user();
+
         $this->name = $this->user->name;
         $this->username = $this->user->username;
         $this->email = $this->user->email;
@@ -55,32 +56,43 @@ class CustomerProfile extends Component
         ];
     }
 
+    public function getUserProperty() {
+        return Auth::user();
+    }
     
     public function updateProfileCustomer() {
-        $user = $this->user;
         $this->validate();
-        if($this->avatar && $this->avatar !== $user->avatar) {
-            if(!empty($user->avatar)) {
-                Storage::disk('public')->delete($user->avatar);
+
+        if($this->avatar && $this->avatar !== $this->user->avatar) {
+
+            if($this->user->avatar) {
+                Storage::disk('public')->delete($this->user->avatar);
             }
-            $newFileName = Str::after($this->avatar, 'tmp/');
-            Storage::disk('public')->move($this->avatar, "avatar/$newFileName");
-            $this->avatar = "avatar/$newFileName";
+
+            $newFileName = str($this->avatar)->after('tmp/')->toString();
+            $finalNameFile = "avatar/$newFileName";
+
+            if( Storage::disk('public')->exists($this->avatar)) {
+                
+                Storage::disk('public')->move($this->avatar, $finalNameFile);
+                $this->avatar = $finalNameFile;
+            }
         }
 
-        $avatar = $this->avatar ? $this->avatar : $user->avatar;
-        $user->name = $this->name;
-        $user->username = $this->username;
-        $user->email = $this->email;
-        $user->phone = $this->phone;
-        $user->avatar = $avatar;
-        $user->save();
+        $this->user->update([
+            'name' => $this->name,
+            'username' => $this->username,
+            'email' => $this->email,
+            'phone' => $this->phone,
+            'avatar' => $this->avatar ?? $this->user->avatar
+        ]);
+
         return redirect()->route('customer.profile')->with('success', 'Profile anda berhasil di edit.');
 
     }
+
     public function render()
     {
         return view('livewire.customers.customer-profile');
     }
 }
-// 

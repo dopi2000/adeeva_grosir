@@ -107,7 +107,7 @@
             document.addEventListener('livewire:initialized', () => {
                 initFilePond();
             });
-
+ 
             // Panggil ulang inisialisasi saat navigasi Livewire
             document.addEventListener('livewire:navigated', () => {
                 initFilePond();

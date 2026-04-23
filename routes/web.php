@@ -25,12 +25,15 @@ Route::webhooks('moota/callback');
 Route::middleware('guest')->group(function() {
     Route::get('/register', Register::class)->name('register');
     Route::get('/login', [LoginUserController::class, 'index'])->name('login');
-    Route::get('/email/verify', [EmailVerificationController::class, 'verification'])->middleware('guest.verification')->name('verification.notice');
-    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
-    Route::get('/email/verified', [EmailVerificationController::class, 'showPageVerifiedEmail'])->name('verification.verified');
     Route::get('/reset-password/{token}', [ForgotPasswordUserController::class,'resetPassword'])->name('password.reset');
     Route::get('/forgot-password', [ForgotPasswordUserController::class, 'index'])->name('password.request');
 });
+
+
+    Route::get('/email/verify', [EmailVerificationController::class, 'verification'])->middleware('auth')->name('verification.notice');
+    Route::get('/email/verify/{id}/{hash}', [EmailVerificationController::class, 'verify'])->middleware(['signed', 'throttle:6,1'])->name('verification.verify');
+    Route::get('/email/verified', [EmailVerificationController::class, 'showPageVerifiedEmail'])->name('verification.verified');
+
     
 Route::middleware(['auth', 'verified'])->group(function() {
     Route::get('/logout', [LoginUserController::class, 'logout'])->name('logout.customer');

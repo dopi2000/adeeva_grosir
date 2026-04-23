@@ -8,6 +8,8 @@ use Illuminate\Support\Str;
 use Livewire\Attributes\Title;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Auth\Events\Registered;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rules\Password;
 
 #[Title('Register | Adeeva Grosir')]
 class Register extends Component
@@ -27,7 +29,7 @@ class Register extends Component
             'username' => ['required', 'min:5', 'max:16', 'unique:users'],
             'email' => ['required', 'max:255', 'email:dns', 'unique:users'],
             'phone' => ['required', 'min:6', 'max:12', 'unique:users'],
-            'password' => ['required', 'min:8', 'max:16', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]+$/'],
+            'password' => ['required', Password::min(8)->max(16)->letters()->mixedCase()->numbers()->symbols()->uncompromised()],
             'confirm_password' => ['required', 'same:password'],
             'terms' => ['accepted']
         ];
@@ -53,7 +55,11 @@ class Register extends Component
             'password.required' => 'Kolom kata sandi tidak boleh kosong.',
             'password.min' => 'Kata sandi harus minimal 8 karakter.',
             'password.max' => 'Kata sandi harus maksimal 16 karakter.',
-            'password.regex' => 'Kata sandi harus terdiri dari kombinasi huruf, angka, atau karater lain.',
+            'password.letters' => 'Kata sandi harus mengandung setidaknya satu huruf.',
+            'password.mixed' => 'Kata sandi harus mengandung kombinasi huruf besar dan kecil.',
+            'password.numbers' => 'Kata sandi harus mengandung setidaknya satu angka.',
+            'password.symbols' => 'Kata sandi harus mengandung setidaknya satu simbol(!@#$%^&*).',
+            'password.uncompromised' => 'Kata sandi ini telah muncul dalam kebocoran data (data leak), harap pilih kata sandi lain..',
             'confirm_password.required' => 'Kolom konfimasi kata sandi wajib di isi.',
             'confirm_password.same' => 'Konfirmasi kata sandi tidak cocok.',
             'terms' => 'Anda harus menyetujui syarat dan ketentuan, tolong di centang'
@@ -75,12 +81,10 @@ class Register extends Component
 
         event(new Registered($user));
 
-        $verificationToken = Str::random(40);
-        session()->put('verification_token', $verificationToken);
-        return redirect()->route('verification.notice', [
-            'username' => $this->username,
-            'token' => $verificationToken
-        ])->with('status', 'Link verifikasi telah dikirim ke email anda');
+        Auth::login($user);
+
+        return redirect()->route('verification.notice')->with('status', 'Link verifikasi telah dikirim ke email anda');
+        
     }
 
     public function render()

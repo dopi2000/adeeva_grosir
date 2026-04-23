@@ -21,20 +21,28 @@ class CustomerProfileController extends Controller
     }
 
     public function uploadAvatar(Request $request) {
+
         if($request->hasFile('avatar')) {
+            $request->validate([
+                'avatar' => [
+                    'image',
+                    'mimes:png,jpg,jpeg',
+                    'max:1048'
+                ]
+            ]);
             $path = $request->file('avatar')->store('tmp', 'public');
             return $path;
         }
-        return response('File tidak ada', 404);
+        return response('Tidak file yang di unggah.', 404);
     }
 
     public function cancelUploadAvatar(Request $request) {
         $path = $request->getContent();
         if(Storage::disk('public')->exists($path)) {
             Storage::disk('public')->delete($path);
-            return response('', 200);
+            return response('Ok', 200);
         }
-        return response('File tidak ditemukan', 400);
+        return response('File tidak ditemukan', 404);
     }
 
   }
